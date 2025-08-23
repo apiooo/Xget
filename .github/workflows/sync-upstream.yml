@@ -2,8 +2,8 @@ name: Sync Upstream to mainup
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天午夜运行
-  workflow_dispatch: # 允许手动触发
+    - cron: '0 3 * * *' # Run daily at 3 AM
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -11,13 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync upstream main to local mainup branch
+      - name: Sync upstream branch
         run: |
-          # 将 ORIGINAL_OWNER/ORIGINAL_REPO 替换为原始仓库的路径
-          # 例如：xixu-me/Xget
           git remote add upstream https://github.com/xixu-me/Xget.git
-
           git fetch upstream
-
-          # 使用完整的 refname 来明确指定推送的目标分支
-          git push origin --force upstream/main:refs/heads/mainup
+          
+          # Detect the default branch of upstream
+          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/upstream/HEAD | sed 's@^refs/remotes/upstream/@@')
+          if [ -z "$DEFAULT_BRANCH" ]; then
+            # Fallback: try common branch names
+            if git show-ref --verify --quiet refs/remotes/upstream/main; then
+              DEFAULT_BRANCH="main"
+            elif git show-ref --verify --quiet refs/remotes/upstream/master; then
+              DEFAULT_BRANCH="master"
+            else
+              echo "Could not determine default branch"
+              exit 1
+            fi
+          fi
+          
+          echo "Default branch detected: $DEFAULT_BRANCH"
+          git push origin --force upstream/$DEFAULT_BRANCH:refs/heads/mainup
