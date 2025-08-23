@@ -9,20 +9,15 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      # 这一步是必需的，即使我们不直接修改本地文件，
-      # 因为我们需要一个Git环境来运行命令。
       - uses: actions/checkout@v4
 
       - name: Sync upstream main to local mainup branch
         run: |
-          # 设置上游仓库的地址
           # 将 ORIGINAL_OWNER/ORIGINAL_REPO 替换为原始仓库的路径
+          # 例如：xixu-me/Xget
           git remote add upstream https://github.com/xixu-me/Xget.git
 
-          # 从上游仓库获取所有分支的最新信息
           git fetch upstream
 
-          # 强制将上游的 main 分支推送到你 fork 仓库的 mainup 分支
-          # "upstream/main" 是源分支
-          # "mainup" 是你 fork 仓库中的目标分支
-          git push origin --force upstream/main:mainup
+          # 使用完整的 refname 来明确指定推送的目标分支
+          git push origin --force upstream/main:refs/heads/mainup
